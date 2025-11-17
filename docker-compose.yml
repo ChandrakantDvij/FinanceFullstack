@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: finance-mysql
+    restart: always
+    env_file:
+      - ./.env
+    ports:
+      - "3307:3306"          # host 3307 -> container 3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./Backend/finance.sql:/docker-entrypoint-initdb.d/finance.sql:ro
+    networks:
+      - finance-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      retries: 12
+      start_period: 10s
+      timeout: 5s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Backend/Dockerfile
+    container_name: finance-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./.env
+    depends_on:
+      db:
+        condition: service_healthy  # Ensures backend waits for MySQL to be healthy
+    networks:
+      - finance-net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Frontend/Dockerfile
+      args:
+        VITE_API_URL: "http://192.168.29.224:5000"
+    container_name: finance-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://finance-backend:5000
+    networks:
+      - finance-net
+
+networks:
+  finance-net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+

@@ -1,0 +1,85 @@
+import { useEffect, useState } from 'react';
+import { Navbar } from '@/components/dashboard/Navbar';
+import { Sidebar } from '@/components/dashboard/Sidebar';
+import { useAuth } from '@/contexts/AuthContext';
+import { DataTable } from '@/components/dashboard/DataTable';
+import { toast } from 'sonner';
+import userApi from '@/api/userApi';
+
+export default function Users() {
+  const { user } = useAuth();
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const usersData = await userApi.getAllUsers();
+      setUsers(usersData);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to load users');
+    }
+  };
+
+  // Table columns with styling
+  const columns = [
+    { 
+      key: 'name', 
+      label: 'Name',
+      render: (value) => (
+        <div className="font-medium">{value}</div>
+      )
+    },
+    { 
+      key: 'email', 
+      label: 'Email',
+      render: (value) => (
+        <div className="text-muted-foreground">{value}</div>
+      )
+    },
+    { 
+      key: 'phone', 
+      label: 'Phone',
+      render: (value) => (
+        <div className="text-muted-foreground">{value}</div>
+      )
+    },
+    { 
+      key: 'role', 
+      label: 'Role',
+      render: (value) => {
+        const roleColors = {
+          superadmin: 'bg-purple-100 text-purple-800',
+          accountant: 'bg-blue-100 text-blue-800',
+          reviewer: 'bg-green-100 text-green-800'
+        };
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleColors[value] || 'bg-gray-100 text-gray-800'}`}>
+            {value}
+          </span>
+        );
+      }
+    }
+  ];
+
+  return (
+    <div className="flex w-full min-h-screen bg-background">
+      <Sidebar role="reviewer" />
+      <div className="flex-1 flex flex-col">
+        <Navbar />
+        <main className="flex-1 p-6">
+          <DataTable
+            data={users}
+            columns={columns}
+            title="Users"
+            canCreate={false}
+            searchable={true}
+          />
+        </main>
+      </div>
+    </div>
+  );
+}
