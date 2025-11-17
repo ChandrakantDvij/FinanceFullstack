@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         GIT_CREDENTIALS = 'github-clone-token'
-        REPO_URL = 'https://github.com/Vaishnavi052/Finance-Application.git'
+        REPO_URL = 'https://github.com/ChandrakantDvij/FinanceFullstack.git'
         APP_DIR = "${WORKSPACE}"
         BACKEND_URL = 'http://192.168.29.224:5000/health'
     }
